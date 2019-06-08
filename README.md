@@ -1,7 +1,11 @@
-NLP Markov Model
+# NLP Markov Model
 
-#Installation
-sklearn: pip install sklearn
+### Installation Requirements
+Run on `python3.5+` and sk-learn  
 
-#To run the file
-python3 proj2.py
+    pip3 install sklearn
+    pip3 install gensim
+
+### Run script
+
+    python3 main.py

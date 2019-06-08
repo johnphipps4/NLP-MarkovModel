@@ -56,17 +56,19 @@ for i in range(len(dev)):
         individs = dev[i].split("\t")
         bio_tags_dev.extend(individs)
 
-#""" Seprating training data and development set. """
-#tokens_train = tokens[0:200000]
-#tokens_dev = tokens[200000:]
-#pos_tags_train = pos_tags[0:200000]
-#pos_tags_dev = pos_tags[200000:]
-#bio_tags_train = bio_tags[0:200000]
-#bio_tags_dev = bio_tags[200000:]
+# Seprating training data and development set
+# tokens_train = tokens[0:200000]
+# tokens_dev = tokens[200000:]
+# pos_tags_train = pos_tags[0:200000]
+# pos_tags_dev = pos_tags[200000:]
+# bio_tags_train = bio_tags[0:200000]
+# bio_tags_dev = bio_tags[200000:]
 
-""" receives list of tokens or tags and returns dictionary with unique tokens or tags
-    as keys and unigram frequency of tokens or tags throughout the text as values"""
 def getUniCount(lst):
+    """ receives list of tokens or tags and returns dictionary with unique
+    tokens or tags as keys and unigram frequency of tokens or tags throughout
+    the text as values"""
+
     countdict = dict()
     for word in lst:
         if word in countdict:
@@ -75,17 +77,20 @@ def getUniCount(lst):
             countdict[word] = 1
     return countdict
 
-""" receives a unicount dictionary and length of  returns dictionary with unique tokens or tags
-    as keys and unigram probabioities of tokens or tags occuring in whole doc as values"""
 def getUniProb(count_dict):
+    """ receives a unicount dictionary and length of  returns dictionary with
+    unique tokens or tags as keys and unigram probabioities of tokens or tags
+    occuring in whole doc as values
+    """
     length = sum(count_dict.values())
     probdict = dict()
     for k,v in count_dict.items():
         probdict[k] = v/length
     return probdict
-
-""" receives a list of tokens or tags and returns a 2D dictionary for bigram frequencies"""
 def getBiCount(lst):
+    """ receives a list of tokens or tags and returns a 2D dictionary for
+    bigram frequencies"""
+
     countdict = dict()
     for i in range(len(lst)-1):
         curr = lst[i]
@@ -99,8 +104,10 @@ def getBiCount(lst):
             countdict[curr] = {nxt: 1}
     return countdict
 
-""" receives a list of tokens or tags and returns a 2D dictionary for bigram probabioities"""
 def getBiProb(unicount_dict,bicount_dict):
+    """ receives a list of tokens or tags and returns a 2D dictionary for
+    bigram probabioities"""
+
     probdict = dict()
     for k1,v1 in bicount_dict.items():
         probdict[k1] = dict()
@@ -108,9 +115,10 @@ def getBiProb(unicount_dict,bicount_dict):
             probdict[k1][k2] = v2 / unicount_dict[k1]
     return probdict
 
-
-""" receives list of tokens and returns a 2D dictionary for bigram frequencies"""
 def getTagTokCount(tgs,tkns):
+    """ receives list of tokens and returns a 2D dictionary for
+    bigram frequencies"""
+
     countdict = dict()
     for i in range(len(tkns)-1):
         tag = tgs[i]
@@ -124,9 +132,10 @@ def getTagTokCount(tgs,tkns):
             countdict[tag] = {word: 1}
     return countdict
 
-""" receives a list of unique tokens and a bigram count dictionary (word | tag)
-    returns a new 2D dictionary that maps word -> tag_i -> frequency """
 def wordToTagDict(unique_tokens, bicount):
+    """ receives a list of unique tokens and a bigram count dictionary
+    (word | tag) returns a new 2D dictionary that maps word -> tag_i -> freq
+    """
     newdict = dict()
     for word in unique_tokens:
         newdict[word] = dict()
@@ -137,11 +146,11 @@ def wordToTagDict(unique_tokens, bicount):
                 newdict[word][tag] = 0
     return newdict
 
-
-""" receives a list of tokens and a unicount dict for the tokens,
-    and returns a new list of tokens with tokens with only one count
-    substituted to a <unk> tag"""
 def unknown1(token_lst, unicount_dict):
+    """ receives a list of tokens and a unicount dict for the tokens,
+        and returns a new list of tokens with tokens with only one count
+        substituted to a <unk> tag"""
+
     newlist = []
     for word in token_lst:
         if unicount_dict[word] == 1:
@@ -150,12 +159,11 @@ def unknown1(token_lst, unicount_dict):
             newlist.append(word)
     return newlist
 
-
-""" receives a word given tag count dictionary (emission count) and
-    a tag count dictionary.
-    returns a 2D probabioity dictionary for word given tag with
-    tag as the first level key and word as the second level key. """
 def emProb(em_count_dict, tag_count_dict):
+    """ receives a word given tag count dictionary (emission count) and
+        a tag count dictionary.
+        returns a 2D probabioity dictionary for word given tag with
+        tag as the first level key and word as the second level key. """
     newdict = dict()
     for tag,v1 in em_count_dict.items():
         newdict[tag] = dict()
@@ -163,11 +171,11 @@ def emProb(em_count_dict, tag_count_dict):
             newdict[tag][word] = count / tag_count_dict[tag]
     return newdict
 
-""" receives a word given tag count dictionary (emission count) and
-    a tag count dictionary.
-    returns a 2D dict with emission probabioities smoothed using
-    Laplace Smoothing method """
 def laplaceSmoothing(em_count_dict, tag_count_dict):
+    """ receives a word given tag count dictionary (emission count) and
+        a tag count dictionary.
+        returns a 2D dict with emission probabioities smoothed using
+        Laplace Smoothing method """
     newdict = dict()
     for tag,v1 in em_count_dict.items():
         newdict[tag] = dict()
@@ -176,10 +184,10 @@ def laplaceSmoothing(em_count_dict, tag_count_dict):
             newdict[tag][word] = (count + 1) / (tag_count_dict[tag] + tagSize)
     return newdict
 
-""" receives ...
-    returns a 2D dict with emission probabioities smoothed using
-    Laplace Smoothing method """
 def addKSmoothing(em_count_dict, tag_count_dict, k):
+    """ receives a word given tag count dictionary (emission count) and
+        returns a 2D dict with emission probabioities smoothed using
+        Laplace Smoothing method """
     newdict = dict()
     for tag,v1 in em_count_dict.items():
         newdict[tag] = dict()
@@ -188,11 +196,11 @@ def addKSmoothing(em_count_dict, tag_count_dict, k):
             newdict[tag][word] = (count + k) / (tag_count_dict[tag] + k*tagSize)
     return newdict
 
-
-""" receives a unicount dictionary, a number k,
-    and performs add k smoothing on the probabilities.
-    returns a new dictionary with the smoothed probabilities. """
 def smoothed_unigram(unicount, k):
+    """ receives a unicount dictionary, a number k, and performs add k smoothing
+     on the probabilities.
+
+     returns a new dictionary with the smoothed probabilities. """
     newdict = dict()
     unique_size = len(unicount.keys())
     data_length = sum(unicount.values())
@@ -200,18 +208,23 @@ def smoothed_unigram(unicount, k):
         newdict[w] = (unicount[w] + k) / (data_length + k * unique_size)
     return newdict
 
-""" receives list of float values and returns new list of float
-    values summing to 1. fixes numpy random.choice glitch to ensure
-    weighted probabioities sum to 1"""
 def div_sum(vals):
+    """ receives list of float values and returns new list of float values
+    summing to 1. fixes numpy random.choice glitch to ensure weighted
+    probabilities sum to 1"""
     newlst = []
     sv = sum(vals)
     for v in vals:
         newlst.append(v / sv)
     return newlst
 
-
 def viterbi(trans_prob, em_prob, tag_uniprob, word_seq):
+    """ runs viterbi algorithm for HMMs. Receives a transition probability
+    dictionary, emission probability dictionary, unigram probability for tags
+    (only used for first word), and the word sequence to predict the tags for.
+
+    Returns a list of predicted BIO tags. """
+
     distinct_tags = tag_uniprob.keys()
     score = dict()
     bptr = dict()
@@ -265,47 +278,86 @@ def viterbi(trans_prob, em_prob, tag_uniprob, word_seq):
     returnlst.reverse()
     return returnlst
 
-def MEMMhelper(word, prev_bio_tag, bio_tag, pos_tag, weight_matrix, emCount, tagSeq):
+def MEMMhelper(word, prev_bio_tag, bio_tag, pos_tag, weight_matrix, emCount,
+                tagSeq, lexicon, pptag, nextword, nextpos, prevword, prevpos):
+    """ helper function that sums up the features mulitplied by the weights. """
     new_sum = 0
-    feature_arr = runFeats(word, pos_tag, prev_bio_tag, bio_tag, emCount)
-    #zarray = []
-    for i in range(12):
+    feature_arr = runFeats(word, pos_tag, prev_bio_tag, bio_tag, emCount,
+                            lexicon, nextword, nextpos, prevword, prevpos)
+    for i in range(179):
         tagindex = tagSeq.index(bio_tag)
         w_i = weight_matrix[tagindex][i]
         f_i = feature_arr[i]
         internal_product = w_i * f_i
-        #zarray.append(internal_product)
         new_sum += internal_product
-    return np.exp(new_sum) #/ np.sum(zarray)
+    return np.exp(new_sum)
 
-def viterbiMEMM(word_seq, pos_seq, weights2D, unique_tags, emCount, trans_prob):
+def viterbiMEMM(word_seq, pos_seq, weights2D, unique_tags, emCount, trans_prob, lexicon):
+    """ Viterbi algorithm for MEMM. Receives a word sequence, POS sequence,
+        weights matrix for the features, a list of unique BIO tags, emission count dictionary,
+        transition probability for the BIO tags, and the lexicon dictionary.
+        Returns a list of predicted BIO tags. """
     score = dict()
     bptr = dict()
     #initialization
     for tag in unique_tags:
         score[tag] = dict()
         bptr[tag] = dict()
-        score[tag][0] = MEMMhelper(word_seq[0], "", tag, pos_seq[0], weights2D, emCount, unique_tags)
-        bptr[tag][0] = "START"
+        if (1 > len(word_seq)-1):
+            score[tag][0] = MEMMhelper(word_seq[0], "", tag, pos_seq[0],
+                                        weights2D, emCount, unique_tags, lexicon,
+                                        "","","", "", "")
+        else: score[tag][0] = MEMMhelper(word_seq[0], "", tag, pos_seq[0],
+                                        weights2D, emCount, unique_tags, lexicon,
+                                        "",pos_seq[1], word_seq[1], "", "")
+        #score[tag][0] = trans_prob_uni[tag]
+        bptr[tag][0] = ""
     #iteration
     for i in range(len(word_seq)):
         if (i != 0):
-            for tag in unique_tags:
-                maxx = float("-inf")
-                maxxtag = tag
-                zarray = []
-                for prev_tag in unique_tags:
-                    p = MEMMhelper(word_seq[i], prev_tag, tag, pos_seq[i], weights2D, emCount, unique_tags)
+            node_arr = [] #2D array -> node_arr[tag][prevtag] = score(prevtag) * p(tag | word, prevtag)
+            z_arr = [] #1D array -> z_arr[prevtag] = zsum  where zsum is sigma_tag p(tag | word, prevtag) for each prevtag
+            #initialize node_arr
+            for x in range(len(unique_tags)):
+                new = []
+                for y in range(len(unique_tags)):
+                    new.append(0)
+                node_arr.append(new)
+            for pi in range(len(unique_tags)):
+                prevtag = unique_tags[pi]
+                zarray = [] #1D array -> zarray[tag] = p(tag | word, prevtag)
+                for ti in range(len(unique_tags)):
+                    tag = unique_tags[ti]
+                    pptag = bptr[prevtag][i-1]
+                    if i == len(word_seq) -1 :
+                        nextword = ""
+                        nextpos = ""
+                    else:
+                        nextword = word_seq[i+1]
+                        nextpos = pos_seq[i+1]
+                    p = MEMMhelper(word_seq[i], prevtag, tag, pos_seq[i],
+                    weights2D, emCount, unique_tags, lexicon,
+                    pptag, nextword, nextpos, word_seq[i-1], pos_seq[i-1])
+                    zarray.append(p)
+                    node_arr[ti][pi] = p #* transp  #score[prevtag][i-1] *
+                z_arr.append(np.sum(zarray))
+            finalscore = []
+            for ti in range(len(unique_tags)):
+                new = []
+                for pi in range(len(unique_tags)):
+                    prevtag = unique_tags[pi]
+                    #final score should be node_arr[tag][prevtag] / z_arr[prevtag]
                     transp = 0
-                    if prev_tag in trans_prob.keys() and tag in trans_prob[prev_tag].keys():
-                        transp = trans_prob[prev_tag][tag] #note: we do not smooth trans prob
-                    if (score[prev_tag][i-1] * (0.5*transp + 0.5*p) >= maxx):
-                        maxx = score[prev_tag][i-1] * (0.8*transp + 0.2*p)
-                        maxxtag = prev_tag
-                    zarray.append(0.5*transp + 0.5*p)
-                znum = np.sum(zarray)
-                score[tag][i] = maxx / znum
-                bptr[tag][i] = maxxtag
+                    if prevtag in trans_prob.keys() and tag in trans_prob[prevtag].keys():
+                        transp = trans_prob[prevtag][tag]
+                    new.append(node_arr[ti][pi] * score[prevtag][i-1] * transp / z_arr[pi])
+                finalscore.append(new)
+            for ti in range(len(unique_tags)):
+                tag = unique_tags[ti]
+                for pi in range(len(unique_tags)):
+                    prev = unique_tags[pi]
+                    score[tag][i] = np.amax(finalscore[ti])
+                    bptr[tag][i] = unique_tags[np.argmax(finalscore[ti])]
     #return
     maxscore = float("-inf")
     maxtag = "B-MISC"
@@ -324,25 +376,29 @@ def viterbiMEMM(word_seq, pos_seq, weights2D, unique_tags, emCount, trans_prob):
     returnlst.reverse()
     return returnlst
 
+def runFeats(word,tag,bio1,bio2,tagtok_2d,lexicon, nextword, nextpos, prevword, prevpos):
+    """ returns an array of all the outputs of each feature for the
+    given inputs.
+    """
 
-
-def runFeats(word,tag,bio1,bio2,tagtok_2d):
-    bios = ["B-LOC","B-ORG","B-PER","B-MISC","I-LOC","I-ORG","I-PER","I-MISC"]
+    bios = ["B-LOC","B-ORG","B-PER","B-MISC","I-LOC","I-ORG","I-PER","I-MISC","O"] #len = 9
+    postags = ['VBD', 'IN', 'NNP', '(', 'NN', ')', ':', 'CD', 'VB', 'TO', 'NNS', ',',
+    'VBP', 'VBZ', '.', 'VBG', 'PRP$', 'JJ', 'CC', 'JJS', 'RB', 'DT', 'VBN', '"',
+    'PRP', 'WDT', 'WRB', 'MD', 'WP', 'POS', 'JJR', 'WP$', 'RP', 'NNPS', 'RBS',
+    'FW', 'RBR', 'EX', "''", 'PDT', 'UH', 'SYM', 'LS', 'NN|SYM'] #len = 44
     temp = []
-    # feature 1: NNP
-    if tag == "NNP": temp.append(1)
-    else: temp.append(0)
-    # feature 2: NNPS
-    if tag == "NNPS": temp.append(1)
-    else: temp.append(0)
-    # feature 3: ALL CAPS & length < 5
+    for p in postags:
+        if tag == p:
+            temp.append(0)
+        else:
+            temp.append(1)
+    # feature 45: ALL CAPS & length < 5
     if word.isupper() and len(word) < 5: temp.append(1)
     else: temp.append(0)
-    # feature 4: Capitalization
+    # feature 46: Capitalization
     if word[0].isupper() and word[-1].islower(): temp.append(1)
     else: temp.append(0)
-
-    #features 5-12: "B-LOC","B-ORG","B-PER","B-MISC","I-LOC","I-ORG","I-PER","I-MISC"
+    #features 47 - 55: "B-LOC","B-ORG","B-PER","B-MISC","I-LOC","I-ORG","I-PER","I-MISC", "O"
     for b in bios:
         if word in tagtok_2d[b].keys():
             num = tagtok_2d[b][word]
@@ -355,15 +411,52 @@ def runFeats(word,tag,bio1,bio2,tagtok_2d):
         else:
             denom = tokens_unk_unicount["<unk>"]
         temp.append(num/denom)
-    # # feature 13: tag transitionary probability
-    # if bio1 == "": temp.append(bio_tags_uniprob[bio2])
-    # else:
-    #     if bio1 in bio_tags_transprob.keys() and bio2 in bio_tags_transprob[bio1].keys():
-    #         temp.append(bio_tags_transprob[bio1][bio2])
-    #     else:
-    #         temp.append(0)
 
-
+    #feature 56-64: previous BIO tags
+    for b in bios:
+        if bio1 == b:
+            temp.append(1)
+        else: temp.append(0)
+    #feature 65-73: lexicon (most frequent tag)
+    most_freq_tag = "O"
+    if word in lexicon.keys():
+        # get the inner dictionary's value, which is an inner dict of
+        # tag : freq
+        inner_word_dict = lexicon[word]
+        #get tag with max frequency
+        most_freq_tag = max(inner_word_dict.items(), key=operator.itemgetter(1))[0]
+    for b in bios:
+        if most_freq_tag == b:
+            temp.append(1)
+        else: temp.append(0)
+    #feature 74-82: most frequent tag of next word
+    most_freq_tag_nextword = "O"
+    if nextword != "" and nextword in lexicon.keys():
+        inner_word_dict = lexicon[nextword]
+        most_freq_tag_nextword = max(inner_word_dict.items(), key=operator.itemgetter(1))[0]
+    for b in bios:
+        if most_freq_tag_nextword == b:
+            temp.append(1)
+        else: temp.append(0)
+    #feature 83 - 126: POS tag of next word
+    for p in postags:
+        if nextpos == p:
+            temp.append(1)
+        else: temp.append(0)
+    #feature 127 - 135: most frequent tag of prev word
+    most_freq_tag_prevword = "O"
+    if prevword != "" and prevword in lexicon.keys():
+        inner_word_dict = lexicon[prevword]
+        most_freq_tag_prevword = max(inner_word_dict.items(), key=operator.itemgetter(1))[0]
+    for b in bios:
+        if most_freq_tag_prevword == b:
+            temp.append(1)
+        else: temp.append(0)
+    #feature 136 - 179: POS tag of prev word
+    for p in postags:
+        if prevpos == p:
+            temp.append(1)
+        else: temp.append(0)
 
     return temp
 
@@ -376,8 +469,8 @@ def backoff(unigram,bigram):
                 boff[tag][word] = unigram[word]
     return boff
 
-""" receives output and answer key and calculates PRF. returns F. """
 def calcPRF(output,answer):
+    """ receives output and answer key and calculates PRF. returns F. """
     correct_p = 0
     guesses_p = len(output)
     correct_r = 0
@@ -394,13 +487,14 @@ def calcPRF(output,answer):
     p = correct_p / guesses_p
     r = correct_r / key_r
     f = (2 * p * r) / (p + r)
-    # print("P: ")
-    # print(p)
-    # print("R: ")
-    # print(r)
     return f
 
 def baseline(sentences, lexicon):
+    """
+    baseline model to test against an MEMM viterbi and HMM viterbi
+
+    uses maximum likelihood to predict tag
+    """
     ret_lst = []
     for sent in sentences:
         for word in sent:
@@ -415,8 +509,8 @@ def baseline(sentences, lexicon):
                 ret_lst.append("O")
     return ret_lst
 
-""" given a file path returns a list of all so 'lines' in the .txt file """
 def formatSents(file_path):
+    """ given a file path returns a list of all so 'lines' in the .txt file """
     opn = open(file_path.format(0)).read()
     #opn = opn.replace("\n"," ")
     opn = opn.replace("’ ","’")
@@ -427,8 +521,8 @@ def formatSents(file_path):
     return fin_lst
 
 """ call clean function with test data """
-test_f = formatSents("Project2_fall2018/test.txt")
-dev_f = formatSents("Project2_fall2018/dev.txt")
+test_f = formatSents("Resources/test.txt")
+dev_f = formatSents("Resources/dev.txt")
 
 """ create separate lists of tokens, pos tags and bio tags for test set """
 test_sents = []
@@ -454,22 +548,29 @@ for i in range(len(dev_f)-1):
     elif i % 3 == 2:
         dev_bio_tags_ll.append(dev_f[i])
 
-
-def viterbify(btt, bpus, btul, sents, memm):
+def viterbify(btt, bpus, btul, sents):
+    """ Runs viterbi algorithm for each sentence for HMM. Outputs a 1D array
+        for the predicted tags. """
     all_tags = []
     for sent in sents:
         tgs = viterbi(btt, bpus, btul, sent)
         all_tags.extend(tgs)
     return all_tags
 
-def viterbifyMEMM(sents, postags, weights, unique_tags, emission_count, trans_prob):
+
+def viterbifyMEMM(sents, postags, weights, unique_tags, emission_count,
+                trans_prob, lexicon):
+    """ Runs viterbi algorithm for each sentence for MEMM. Outputs a 1D array
+        for the predicted tags. """
     all_tags = []
     for i in range(len(sents)):
-        tgs = viterbiMEMM(sents[i], postags[i], weights, unique_tags, emission_count, trans_prob)
+        tgs = viterbiMEMM(sents[i], postags[i], weights, unique_tags,
+                            emission_count, trans_prob, lexicon)
         all_tags.extend(tgs)
     return all_tags
 
 def csv_helper(lst):
+    """ helper function for the makecsv function. """
     strng = ""
     inseq = False
     start = 0
@@ -495,6 +596,9 @@ def csv_helper(lst):
                 strng += str(lst[i]) + "-" + str(lst[i]) + " "
 
 def makecsv(csv_file_name,lst):
+    """ Recieves a filename and a list of predictions. Outputs a csv file for
+        the kaggle submission format. """
+
     with open(csv_file_name + ".csv", 'w', newline='') as myfile:
         wr = csv.writer(myfile, delimiter=',', quoting=csv.QUOTE_ALL)
         wr.writerow(['Type', 'Prediction'])
@@ -517,11 +621,21 @@ def makecsv(csv_file_name,lst):
         wr.writerow(["ORG", csv_helper(orgs)])
         wr.writerow(["MISC", csv_helper(miscs)])
 
+def makeX(emCount, lexicon):
+    """ makes a 2D array in the format arr[word_index][feature_index] and it's
+        corresponding output value for the feature. Used for makeing the input for
+        sklearn's fit function. """
 
-def makeX(emCount):
     arr = []
-    for i in range(len(tokens_train)):
-        temp = runFeats(tokens_train_unk[i],pos_tags_train[i],"",bio_tags_train[i], emCount)
+    for i in range(len(tokens_train_unk)):
+        if i < len(tokens_train_unk) - 1:
+            nextword = tokens_train_unk[i+1]
+            nextpos = pos_tags_train[i+1]
+        else:
+            nextword = ""
+            nextpost = ""
+        temp = runFeats(tokens_train_unk[i],pos_tags_train[i],"",
+        bio_tags_train[i], emCount, lexicon,nextword, nextpos, "", "")
         arr.append(temp)
     return arr
 
@@ -548,42 +662,43 @@ tokens_uniprob_smooth = smoothed_unigram(tokens_unk_unicount, 0.8) #unk and smoo
 #backoff_prob = backoff(tokens_uniprob, emission_prob)
 #backoff_prob_unk = backoff(tokens_unk_uniprob, emission_prob_unk)#unk
 backoff_prob_unk_smooth = backoff(tokens_uniprob_smooth, emission_prob_unk_smooth) #unk with smoothing, might want to smooth uniprob
-#
-# #development set
-# #HMM
-# dev_guess = viterbify(bio_tags_transprob, backoff_prob_unk_smooth, bio_tags_uniprob, dev_sents)
-# dev_PRF = calcPRF(dev_guess, bio_tags_dev)
-#
-#
-# #baseline
-# dev_bs_guess = baseline(dev_sents, wordToTagDict(tokens_unk_unicount.keys(), emission_count_unk))
-# dev_bs_PRF = calcPRF(dev_bs_guess, bio_tags_dev)
-#
-# #test
-# test_guess = viterbify(bio_tags_transprob, backoff_prob_unk_smooth, bio_tags_uniprob, test_sents)
-# #test_guess_baseline = baseline(test_sents, wordToTagDict(tokens_unk_unicount.keys(), emission_count_unk))
-# makecsv("8780hmm",test_guess)
-# #makecsv("baseline", test_guess_baseline)
 
-#dev on MEMM
-x2d = np.array(makeX(emission_count_unk))
+################################ DEVELOPMENT SET ################################
+
+################ HMM begin
+# dev_guess = viterbify(bio_tags_transprob, backoff_prob_unk_smooth,
+#                       bio_tags_uniprob, dev_sents)
+# dev_PRF = calcPRF(dev_guess, bio_tags_dev)
+################# HMM ends
+
+################## MEMM begin
+x2d = np.array(makeX(emission_count_unk, lexicon))
 lr = sklearn.linear_model.LogisticRegression()
-#lr = Lasso(positive=True)
 lrresult = lr.fit(x2d, bio_tags_train)
 weights = lrresult.coef_
 unique_tags = np.ndarray.tolist(lrresult.classes_)
-# print(weights[0])
-# print(sum(weights[0]))
-# MEMMguess = viterbifyMEMM(dev_sents, dev_pos_tags_ll, weights, unique_tags, emission_count_unk, bio_tags_transprob)
-# print(MEMMguess[0:100])
-# print("answer")
-# print(bio_tags_dev[0:100])
+################## MEMM ends
 
-#run tests on train
-# MEMMtrainguess = viterbiMEMM(tokens_train_unk[0:100], pos_tags_train[0:100], weights, unique_tags, emission_count_unk)
-# print(MEMMtrainguess[0:100])
-# print(bio_tags_train[0:100])
+################# BASELINE begins
+lexicon = wordToTagDict(tokens_unk_unicount.keys(), emission_count_unk)
 
+# dev_bs_guess = baseline(dev_sents, lexicon)
+# dev_bs_PRF = calcPRF(dev_bs_guess, bio_tags_dev)
+
+################# BASELINE ends
+
+################################# TEST SET ####################################
+# test_guess = viterbify(bio_tags_transprob, backoff_prob_unk_smooth,
+#                bio_tags_uniprob, test_sents)
+# test_guess_baseline = baseline(test_sents, wordToTagDict(tokens_unk_unicount.keys(),
+#                                    emission_count_unk))
+# makecsv("8780hmm",test_guess)
+# makecsv("baseline", test_guess_baseline)
+
+
+
+""" Greedy algorithm for experimenting on MEMM. Used to compare performance to our
+    viterbi algorithm. """
 def greedy(word_seq, pos_seq, weights2D, unique_tags, emCount):
     taglst = []
     for i in range(len(word_seq)):
@@ -597,22 +712,30 @@ def greedy(word_seq, pos_seq, weights2D, unique_tags, emCount):
         taglst.append(maxxtag)
     return taglst
 
-# MEMMtrainguess = greedy(tokens_train[0:100], pos_tags_train[0:100], weights, unique_tags, emission_count_unk)
-# print(MEMMtrainguess[0:100])
-# print(bio_tags_train[0:100])
-
+# Use sklearn's predict function
 def usePredict(tokenslst, postagslst):
+    """ function for running sklearn's predict function. Used for testing and comparing
+        our algorithms performance. """
     final = []
     for i in range(len(tokenslst)):
-        arr = runFeats(tokenslst[i], postagslst[i], "", "", emission_count_unk)
+        if i != 0:
+            prevword = tokenslst[i-1]
+            prevpos = postagslst[i-1]
+        else:
+            prevword = ""
+            prevpos = ""
+        if i < len(tokenslst)-1:
+            nextword = tokenslst[i+1]
+            nextpos = postagslst[i+1]
+        else:
+            nextword = ""
+            nextpos = ""
+        arr = runFeats(tokenslst[i],postagslst[i],"","",emission_count_unk,lexicon, nextword, nextpos, prevword, prevpos)
         final.append(arr)
     return final
 
-# print(lr.predict(final))
-# print(bio_tags_train[0:100])
-#
-# print(lr.predict(usePredict(dev_sents[0], dev_pos_tags_ll[0])))
-# print(dev_bio_tags_ll[0])
+predictguess = lr.predict(usePredict(tokens_dev, pos_tags_dev))
+calcPRF(predictguess, bio_tags_dev)
 
 def decision_function(X_test: "np.ndarray[float]") -> "np.ndarray[string]":
         scores = np.dot(X_test, weights[:-1].T) + weights[-1]
@@ -627,23 +750,3 @@ def predict(X_test: "np.ndarray[float]") -> "np.ndarray[string]":
 
     x = unique_tags[indices]
     return unique_tags[indices]
-
-# print(decision_function(usePredict(dev_sents[0], dev_pos_tags_ll[0])))
-# print(dev_bio_tags_ll[0])
-
-#word embeddings
-model = gensim.models.KeyedVectors.load_word2vec_format('word2vec/GoogleNews-vectors-negative300.bin', binary=True)
-ourmodel = gensim.models.Word2Vec(tokens_train_unk, size=3)
-w2v = dict(zip(ourmodel.wv.index2word, ourmodel.wv.syn0))
-class MeanEmbeddingVectorizer(object):
-    def __init__(self, word2vec):
-        self.word2vec = word2vec
-        self.dim = len(word2vec.itervalues().next())
-    def transform(self, X):
-        return np.array([
-            np.mean([self.word2vec[w] for w in words if w in self.word2vec]
-                    or [np.zeros(self.dim)], axis=0)
-            for words in X ])
-
-para_array = MeanEmbeddingVectorizer(w2v).transform(dev_sents[0])
-print(para_array)
